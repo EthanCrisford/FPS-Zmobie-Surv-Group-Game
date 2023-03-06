@@ -4,37 +4,116 @@ using UnityEngine;
 
 public class Spawner : MonoBehaviour
 {
+    
 
-    public GameObject[] amountOfPrefabs;
-    private Transform playerTransform;
-    private float spawnZ = 0.0f;
-    private float tileLength = 30.0f;
-    private int amnTileOnScreen = 7;
-    // Use this for initialization
-    void Start()
+    public enum SpawnState { SPAWNING, WAITING, COUNTING };
+
+    [SerializeField] private Wave[] waves;
+
+    [SerializeField] private float timeBetweenWaves = 3f;
+    [SerializeField] private float waveCountdown = 0;
+
+    private SpawnState state = SpawnState.COUNTING;
+
+    private int currentWave;
+
+    [SerializeField] private Transform[] spawners;
+   // [SerializeField] private List<CharacterStats> zombieList;
+
+    private void Start()
     {
-        playerTransform = GameObject.FindGameObjectWithTag("Player").transform;
-        for (int i = 0; i < amnTileOnScreen; i++)
-        {
-            SpawnTile();
-        }
+        waveCountdown = timeBetweenWaves;
+
+        currentWave = 0;
     }
 
-    // Update is called once per frame
-    void Update()
+  /*  public void Update()
     {
-        if (playerTransform.position.z > (spawnZ - amnTileOnScreen * tileLength))
+        if (state == SpawnState.WAITING)
         {
-            SpawnTile();
+            if (!ZombiesAreDead())
+            {
+                return;
+            }
+            else
+            {
+                CompleteWave();
+            }
+        }
+        
+
+        if (waveCountdown <= 0)
+        {
+            if (state != SpawnState.SPAWNING)
+            {
+                StartCoroutine(SpawnWave(waves[currentWave]));
+            }
+        }
+        else
+        {
+            waveCountdown -= Time.deltaTime;
         }
     }
-
-    private void SpawnTile(int prefabIndex = -1)
+  */
+   / private IEnumerator SpawnWave(Wave wave)
     {
-        GameObject go;
-        go = Instantiate(amountOfPrefabs[0]) as GameObject;
-        go.transform.SetParent(transform);
-        go.transform.position = Vector3.forward * spawnZ;
-        spawnZ += tileLength;
+        state = SpawnState.SPAWNING
+
+        for(int i 1 = 0; i < wave.enemiesAmount; i++)
+        {
+            SpawnZombie(wave.zombie);
+            yield return new WaitForSeconds(wave.delay);
+        }
+
+        state = SpawnState.WAITING;
+
+        yield break;
+    }
+
+    private void SpawnZombie(GameObject zombie)
+    {
+        int randomInt = Random.RandomRange(1, spawners.Length);
+        Transform randomSpawner = spawners[randomInt];
+
+       GameObject newZombie = Instantiate(zombie, randomSpawner.position, randomSpawner.rotation);
+       // CharacterStats newZombieStats = newZombie.GetComponent<CharacterStats>();
+
+       // zombieList.Add(newZombieStats);
+    }
+
+    /*& private bool ZombiesAreDead()
+    {
+        int i = 0;
+        foreach (CharacterStats zombie in zombieList)
+        {
+            if (zombie.IsDead())
+            {
+                i++;
+            }
+            else
+            {
+                return false;
+            }
+            return true;
+        }
+    }
+    */
+    private void CompleteWave()
+    {
+        Debug.Log("Wave done.");
+
+        state = SpawnState.COUNTING;
+        waveCountdown = timeBetweenWaves;
+
+        if (currentWave + 1 > waves.Length - 1)
+        {
+            currentWave = 0;
+            Debug.Log("All waves done.");
+        }
+        else
+        {
+            currentWave++;
+        }
+        
     }
 }
